@@ -190,7 +190,7 @@ let
         @test isapprox(d.σ, 1.0, atol=0.05)
 
         d = cpd(Assignment(:a=>2, :b=>3.0))
-        @test isapprox(d.μ, 16, atol=0.05)
+        @test isapprox(d.μ, 16, atol=0.25)
         @test isapprox(d.σ, 2.0, atol=0.05)
     end
 end
