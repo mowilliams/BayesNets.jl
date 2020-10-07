@@ -84,7 +84,7 @@ function Distributions.fit(::Type{LinearGaussianCPD},
     b = β[end]
 
     # Estimate σ using the larger of the maximum likelihood stddev or the min_stddev
-    σ = max(sqrt(mean(abs2(y - X*β))), min_stdev)
+    σ = max(sqrt(mean(abs2.(y - X*β))), min_stdev)
 
     LinearGaussianCPD(target, parents, a, b, σ)
 end
