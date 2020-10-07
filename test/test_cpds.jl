@@ -111,15 +111,40 @@ let
 
         p = cpd(:a=>0.0)
         @test isapprox(p.μ, 1.0, atol=0.25)
-        @test isapprox(p.σ, 2.0, atol=0.50)
+        @test isapprox(p.σ, 1.0, atol=0.50)
 
         p = cpd(:a=>1.0)
         @test isapprox(p.μ, 3.0, atol=0.25)
-        @test isapprox(p.σ, 2.0, atol=0.50)
+        @test isapprox(p.σ, 1.0, atol=0.50)
 
         cpd = fit(LinearGaussianCPD, df, :b, [:a], min_stdev=10.0)
         @test cpd(:a=>1.0).σ == 10.0
     end
+
+    # with parents and singular matrix in the least squares problem
+    let
+        a = randn(1000)
+        b = randn(1000) .+ 2*a .+ 1
+
+        df = DataFrame(a=a, a_copy=a, b=b)
+        cpd = fit(LinearGaussianCPD, df, :b, [:a, :a_copy])
+
+        @test !parentless(cpd)
+        @test parents(cpd) == [:a, :a_copy]
+        @test nparams(cpd) == 4
+        
+        p = cpd(:a=>0.0, :a_copy=>0.0)
+        @test isapprox(p.μ, 1.0, atol=0.25)
+        @test isapprox(p.σ, 1.0, atol=0.50)
+
+        p = cpd(:a=>1.0, :a_copy=>1.0)
+        @test isapprox(p.μ, 3.0, atol=0.25)
+        @test isapprox(p.σ, 1.0, atol=0.50)
+
+        cpd = fit(LinearGaussianCPD, df, :b, [:a], min_stdev=10.0)
+        @test cpd(:a=>1.0, :a_copy=>1.0).σ == 10.0
+    end
+
 end
 
 # ConditionalLinearGaussianCPD
@@ -140,9 +165,19 @@ let
 
     # with parents
     let
-        df = DataFrame(a=[  1,   1,   1,   1,     2,   2,   2,   2],
-                       b=[0.5, 1.0, 1.5, 1.0,   2.5, 3.0, 3.5, 3.0],
-                       c=[0.55,1.05,1.53,1.02,  2.52,3.01,3.55,3.03])
+        a1 = ones(Int64, 1000)
+        b1 = randn(1000)
+        c1 =  3.14*b1 .+ randn(1000) .+ 1.0
+
+        a2 = 2*ones(Int64, 1000)
+        b2 = randn(1000)
+        c2 = 2*b2 .+ 2*randn(1000) .+ 10 
+
+        a = [a1; a2]
+        b = [b1; b2]
+        c = [c1; c2]
+
+        df = DataFrame(a=a, b=b, c=c)
         cpd = fit(ConditionalLinearGaussianCPD, df, :c, [:a, :b])
 
         @test name(cpd) == :c
@@ -151,12 +186,12 @@ let
         @test nparams(cpd) == 6
 
         d = cpd(Assignment(:a=>1, :b=>0.5))
-        @test isapprox(d.μ, 0.5475, atol=0.001)
-        @test isapprox(d.σ, 0.4003, atol=0.001)
+        @test isapprox(d.μ, 2.57, atol=0.01)
+        @test isapprox(d.σ, 1.0, atol=0.01)
 
         d = cpd(Assignment(:a=>2, :b=>3.0))
-        @test isapprox(d.μ, 3.027, atol=0.001)
-        @test isapprox(d.σ, 0.421, atol=0.001)
+        @test isapprox(d.μ, 16.0, atol=0.001)
+        @test isapprox(d.σ, 2.0, atol=0.01)
     end
 end
 
