@@ -169,9 +169,9 @@ let
         b1 = randn(1000)
         c1 =  3.14*b1 .+ randn(1000) .+ 1.0
 
-        a2 = 2*ones(Int64, 1000)
-        b2 = randn(1000)
-        c2 = 2*b2 .+ 2*randn(1000) .+ 10 
+        a2 = 2*ones(Int64, 2000)
+        b2 = randn(2000)
+        c2 = 2*b2 .+ 2*randn(2000) .+ 10 
 
         a = [a1; a2]
         b = [b1; b2]
@@ -190,7 +190,7 @@ let
         @test isapprox(d.σ, 1.0, atol=0.05)
 
         d = cpd(Assignment(:a=>2, :b=>3.0))
-        @test isapprox(d.μ, 16.0, atol=0.05)
+        @test isapprox(d.μ, 16, atol=0.05)
         @test isapprox(d.σ, 2.0, atol=0.05)
     end
 end
