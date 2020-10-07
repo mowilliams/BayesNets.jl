@@ -47,6 +47,7 @@ function Distributions.fit(::Type{LinearGaussianCPD},
 
     LinearGaussianCPD(target, NodeName[], Float64[], μ, σ)
 end
+
 function Distributions.fit(::Type{LinearGaussianCPD},
     data::DataFrame,
     target::NodeName,
@@ -76,21 +77,14 @@ function Distributions.fit(::Type{LinearGaussianCPD},
     y = convert(Vector{Float64}, data[!,target])
 
     # --------------------
-    # solve the regression problem
-    #   β = (XᵀX)⁻¹Xᵀy
-    #
-    #     X is the [nsamples × nparents+1] data matrix
-    #     where the last column is 1.0
-    #
-    #     y is the [nsamples] vector of target values
-    #
-    # NOTE: this will fail if X is not full rank
-
-    β = (X'*X)\(X'*y)
+    # Solve using pivoted QR
+    β = X\y
 
     a = β[1:nparents]
     b = β[end]
-    σ = max(std(y), min_stdev)
+
+    # Estimate σ using the larger of the maximum likelihood stddev or the min_stddev
+    σ = max(sqrt(mean(abs2(y - X*β))), min_stdev)
 
     LinearGaussianCPD(target, parents, a, b, σ)
 end
